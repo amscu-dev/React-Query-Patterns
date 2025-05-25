@@ -2,29 +2,48 @@ import { fetchData } from "@/lib/fetch-utils";
 import { useEffect, useState } from "react";
 import { Post } from "../api/posts/data";
 
-export default function FetchWithUseEffect({ category }: { category: string }) {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+export default function FetchWithUseEffectFixed({
+  category,
+}: {
+  category: string;
+}) {
+  const [posts, setPosts] = useState<Post[]>();
+  // Pentru a nu vedea no-data initializam starea de load cu true
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>();
 
   // Bug-uri actuale: 1. Race condition 2. Eroare persistenta 3. No data este randata dupa isLoading prima data
-
+  // Fix:
   useEffect(() => {
     setIsLoading(true);
-
+    // Fix RaceCondition
+    let ignore = false;
     async function fetchPosts() {
       try {
         const data = await fetchData<Post[]>(`/api/posts?category=${category}`);
-        setPosts(data);
+        if (!ignore) {
+          setPosts(data);
+          setError(undefined);
+        }
       } catch (error) {
-        console.error("Fetch error:", error);
-        setError("Failed to fetch posts");
+        if (!ignore) {
+          console.error("Fetch error:", error);
+          setError("Failed to fetch posts");
+          setPosts(undefined);
+        }
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
 
     fetchPosts();
+
+    // Va functiona datorita closures
+    return () => {
+      ignore = true;
+    };
   }, [category]);
 
   return (
@@ -40,13 +59,13 @@ export default function FetchWithUseEffect({ category }: { category: string }) {
           <>
             {error && <div className="mb-4 text-red-500">Error: {error}</div>}
 
-            {posts.length === 0 && !error && (
+            {posts?.length === 0 && !error && (
               <div className="mb-4">No posts found for this category.</div>
             )}
 
-            {posts.length > 0 && (
+            {posts && posts?.length > 0 && (
               <ul className="space-y-4">
-                {posts.map((post) => (
+                {posts?.map((post) => (
                   <li key={post.id} className="border p-3 rounded">
                     <h3 className="font-semibold">{post.title}</h3>
                     <p>{post.body}</p>

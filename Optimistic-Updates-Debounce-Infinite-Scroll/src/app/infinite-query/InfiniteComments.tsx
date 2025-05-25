@@ -5,13 +5,11 @@ import { Button } from "@/components/ui/button";
 export default function InfiniteComments() {
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">
-        Comments
-      </h2>
+      <h2 className="text-xl font-bold mb-4">Comments</h2>
 
       <CommentForm />
 
-      {/* {isLoading && <p className="mb-4 text-blue-500">Loading comments...</p>}
+      {isLoading && <p className="mb-4 text-blue-500">Loading comments...</p>}
 
       {isError && (
         <div className="mb-4 text-red-500">
@@ -61,7 +59,7 @@ export default function InfiniteComments() {
             )}
           </div>
         </div>
-      )} */}
+      )}
     </div>
   );
 }
