@@ -1,11 +1,27 @@
 import { formatRelativeDate } from "@/lib/utils";
 import { CommentForm } from "./CommentForm";
 import { Button } from "@/components/ui/button";
+import { useCommentsQuery } from "./use-comments-hooks";
 
 export default function InfiniteComments() {
+  const {
+    data,
+    fetchNextPage,
+    isLoading,
+    isError,
+    error,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useCommentsQuery();
+
+  //Normalize Data
+  const comments = data?.pages.flatMap((item) => item.comments);
+
   return (
     <div>
-      <h2 className="text-xl font-bold mb-4">Comments</h2>
+      <h2 className="text-xl font-bold mb-4">
+        Comments ({data?.pages[0].totalComments ?? "-"})
+      </h2>
 
       <CommentForm />
 
