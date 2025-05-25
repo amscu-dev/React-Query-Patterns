@@ -3,6 +3,14 @@ import { CommentForm } from "./CommentForm";
 import { Button } from "@/components/ui/button";
 import { useCommentsQuery } from "./use-comments-hooks";
 
+import {
+  MutationFilters,
+  useIsMutating,
+  useMutationState,
+} from "@tanstack/react-query";
+
+type NewCommentVariables = { text: string };
+
 export default function InfiniteComments() {
   const {
     data,
@@ -13,6 +21,22 @@ export default function InfiniteComments() {
     hasNextPage,
     isFetchingNextPage,
   } = useCommentsQuery();
+
+  // 1) Extrage variabila ultimei mutații pending
+  const variables = useMutationState<NewCommentVariables>({
+    filters: {
+      mutationKey: ["new-comment"],
+      status: "pending",
+    } as MutationFilters,
+    select: (mutation) => mutation.state.variables as NewCommentVariables,
+  });
+  console.log(variables);
+
+  // 2) Verifici dacă există oricare mutație „new-comment” încă în pending
+  const isPending =
+    useIsMutating({
+      mutationKey: ["new-comment"],
+    }) > 0;
 
   //Normalize Data
   const comments = data?.pages.flatMap((item) => item.comments);
@@ -35,6 +59,13 @@ export default function InfiniteComments() {
 
       {!isLoading && !isError && comments?.length === 0 && (
         <div className="mb-4">No comments yet.</div>
+      )}
+      {isPending && (
+        <div className="flex items-center space-x-2 p-3 bg-slate-900 text-white mb-2 rounded-md animate-pulse">
+          <p className="animate-pulse">
+            Valoarea care este actualizata optimist: {variables[0].text}
+          </p>
+        </div>
       )}
 
       {comments && comments.length > 0 && (
